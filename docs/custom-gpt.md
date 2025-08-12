@@ -1,1 +1,18 @@
-# Custom-GPT documentatie
+# Custom GPT – OpenAPI integratie
+
+## OpenAPI-specificatie
+Bestand: `openapi/openapi.yaml`  
+Live versie:  
+https://gist.github.com/janpi80/27bcaec51e4454db0fa36f976d1176c0
+
+## Belangrijk
+- `getVoorraad` gebruikt `/voorraad_schoon` in plaats van `/Voorraad`
+- Extra velden toegevoegd: `datum_laatste_wijziging` en `opmerkingen`
+- `datum_laatste_wijziging` is optioneel bij POST (Supabase vult automatisch)
+
+## Import in GPT
+1. Open GPT → **Edit Actions**
+2. Kies **Import from URL**
+3. Vul gist-raw link in
+4. API-key invullen (Supabase anon key)
+5. Test de 4 routes (GET, POST, PATCH, DELETE)
