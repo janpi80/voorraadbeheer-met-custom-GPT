@@ -1,0 +1,20 @@
+# ====== API Keys & Secrets ======
+*.env
+apikey.txt
+secret.txt
+
+# ====== Systeembestanden ======
+.DS_Store
+Thumbs.db
+
+# ====== Logs ======
+*.log
+
+# ====== Node.js (voor als je ooit scripts toevoegt) ======
+node_modules/
+
+# ====== Python cache (voor als er ooit Python-scripts bijkomen) ======
+__pycache__/
+
+# ====== VSCode instellingen ======
+.vscode/
