@@ -1,0 +1,155 @@
+## Changelog 2.0.4:
+# - `getVoorraad` haalt nu data op uit de view `voorraad_schoon` i.p.v. de tabel `Voorraad`
+# - View filtert irrelevante datum_laatste_wijziging en zet deze op null
+# - Structuur en overige endpoints ongewijzigd
+
+openapi: 3.1.0
+info:
+  title: Voorraadbeheer API
+  version: 2.0.4
+  description: API voor het beheren van voorraad in Supabase (patch & delete via eq.-filter)
+
+servers:
+  - url: https://nvttcwbsqbiidzszaran.supabase.co/rest/v1
+
+paths:
+  /voorraad_schoon:
+    get:
+      summary: Haal alle voorraad op (gefilterde view)
+      operationId: getVoorraad
+      parameters:
+        - name: select
+          in: query
+          required: true
+          schema:
+            type: string
+            example: "*"
+      responses:
+        '200':
+          description: OK
+      security:
+        - apiKey: []
+
+  /Voorraad:
+    post:
+      summary: Voeg een nieuw product toe
+      operationId: postVoorraad
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoorraadItem'
+      responses:
+        '201':
+          description: Item toegevoegd
+      security:
+        - apiKey: []
+
+    patch:
+      summary: Pas een product aan op basis van ID (eq.-filter)
+      operationId: patchVoorraad
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: Gebruik Supabase-filter, bijv. `eq.3`
+          schema:
+            type: string
+            pattern: '^eq\\.[0-9]+$'
+            example: eq.3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VoorraadUpdate'
+      responses:
+        '200':
+          description: Item aangepast
+      security:
+        - apiKey: []
+
+    delete:
+      summary: Verwijder een product op basis van ID (eq.-filter)
+      operationId: deleteVoorraad
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: Gebruik Supabase-filter, bijv. `eq.2`
+          schema:
+            type: string
+            pattern: '^eq\\.[0-9]+$'
+            example: eq.2
+      responses:
+        '200':
+          description: Item verwijderd
+      security:
+        - apiKey: []
+
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: apikey
+
+  schemas:
+    VoorraadItem:
+      type: object
+      required:
+        - categorie
+        - naam_kort
+        - hoeveelheid
+        - eenheid
+      properties:
+        categorie:
+          type: string
+        naam_kort:
+          type: string
+        omschrijving:
+          type: string
+        hoeveelheid:
+          type: number
+        eenheid:
+          type: string
+        kcal_per_eenheid:
+          type: number
+        eiwit_per_eenheid:
+          type: number
+        tht:
+          type: string
+          format: date
+        datum_laatste_wijziging:
+          type: string
+          format: date-time
+        opmerkingen:
+          type: string
+
+    VoorraadUpdate:
+      type: object
+      description: Geef alleen de velden op die je wilt wijzigen
+      properties:
+        categorie:
+          type: string
+        naam_kort:
+          type: string
+        omschrijving:
+          type: string
+        hoeveelheid:
+          type: number
+        eenheid:
+          type: string
+        kcal_per_eenheid:
+          type: number
+        eiwit_per_eenheid:
+          type: number
+        tht:
+          type: string
+          format: date
+        datum_laatste_wijziging:
+          type: string
+          format: date-time
+        opmerkingen:
+          type: string
