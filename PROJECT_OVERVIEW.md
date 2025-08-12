@@ -1,45 +1,67 @@
-# Projectoverzicht – Voorraadbeheer met Custom GPT
+# Project Overview
 
 ## Doel
-Dit project beheert een voedselvoorraad via Supabase, een Custom GPT en Google Sheets.  
-Het systeem kan producten toevoegen, aanpassen, verwijderen en uitlezen, inclusief houdbaarheidscontroles (THT) en opmerkingen.  
+Dit project is een geïntegreerd systeem voor voorraadbeheer, boodschappen en receptenbeheer.  
+Het maakt gebruik van:
+- **Supabase** als centrale database
+- **Custom GPT** als beheerinterface
+- **Google Sheets** als read-only dashboard
 
-## Onderdelen
-1. **Supabase**  
-   - Backend-database voor alle voorraadgegevens.  
-   - Tabel: `Voorraad`  
-   - View: `voorraad_schoon` (filtert irrelevante datum/tijdwaarden)  
+---
 
-2. **Custom GPT**  
-   - OpenAI Custom GPT gekoppeld via OpenAPI-spec (`openapi/voorraadbeheer-api.yaml`).  
-   - Kan GET, POST, PATCH, DELETE uitvoeren op de voorraad.  
-   - Service role key nodig voor schrijf-acties.
+## Componenten
 
-3. **Google Sheets**  
-   - Read-only weergave van de voorraad via `voorraad_schoon`.  
-   - Apps Script (`code/google-sheets-sync.gs`) haalt data automatisch op.  
-   - Gebruikt anon key voor beveiliging.
+### 1. Supabase
+- **Tabel:** `Voorraad`
+- **View:** `voorraad_schoon` (filtert irrelevante waarden zoals de bulkdatum `2025-08-12T08:03:17.819444+00:00`)
+- Houdt automatisch `datum_laatste_wijziging` bij via triggers of automatische kolommen.
+- Kolommen:
+  - id, created_at, categorie, naam_kort, omschrijving, hoeveelheid, eenheid
+  - kcal_per_eenheid, eiwit_per_eenheid, tht, datum_laatste_wijziging, opmerkingen
 
-## Workflow
-1. Producten worden toegevoegd/bewerkt via Custom GPT.
-2. Supabase slaat alle data op en werkt automatisch `datum_laatste_wijziging` bij.
-3. Google Sheets synchroniseert periodiek of handmatig voor overzicht.
-4. View `voorraad_schoon` filtert interne of irrelevante datums uit de resultaten.
+**Categorieën in gebruik:**
+- **Voorraad:** Diepvries, Koelkast en vers, Kruiden en gedroogd, Kast / Houdbaar
+- **Boodschappen:** Lijst met nog te kopen producten
+- **Recepten:** Bevat recepten, aantal porties, ingrediënten, bereidingswijze
 
-## Beveiliging
-- **Service role key** → Alleen in Custom GPT voor schrijven.  
-- **Anon key** → Alleen in Google Sheets voor lezen.  
-- Geen schrijf-toegang vanuit Google Sheets om onbedoelde wijzigingen te voorkomen.
+---
 
-## Belangrijke bestanden
-- `sql/create_tables.sql` → maakt de voorraad-tabel aan.
-- `sql/create_view_voorraad_schoon.sql` → maakt de gefilterde view aan.
-- `openapi/voorraadbeheer-api.yaml` → OpenAPI-specificatie voor Custom GPT.
-- `code/google-sheets-sync.gs` → Apps Script voor Google Sheets synchronisatie.
-- `UPDATE_STEPS.md` → procedure voor updates.
-- `CHANGELOG.md` → versiegeschiedenis.
-- `INSTALL.md` → installatiehandleiding.
+### 2. Custom GPT
+- Koppelt via een OpenAPI-specificatie (YAML in gist).
+- Schrijf-toegang tot Supabase (service_role key).
+- Taken:
+  - Producten toevoegen, bijwerken of verwijderen
+  - THT-checks uitvoeren
+  - Boodschappenlijst beheren
+  - Recepten opslaan en ingrediënten controleren
+- Haalt data op via de view `voorraad_schoon` om gefilterde data te tonen.
 
-## Links
-- Google Spreadsheet: https://docs.google.com/spreadsheets/d/1KvllL8AbYfnqMXmbdb8PDDJGQYZwHMN5CgvwzqzICXQ/edit?gid=0#gid=0
-- OpenAPI gist: https://gist.github.com/janpi80/27bcaec51e4454db0fa36f976d1176c0
+---
+
+### 3. Google Sheets
+- Read-only dashboard voor de voorraad.
+- Gebruikt `voorraad_schoon` als bron.
+- Koppeling via Apps Script (`Code.gs`) met anon key.
+- Functies:
+  - Actueel overzicht tonen
+  - Data automatisch verversen via sync-script
+
+---
+
+## Dataflow
+
+- Custom GPT (schrijven) → Supabase (tabel + view) → Google Sheets (lezen)
+
+---
+
+## Belangrijke aandachtspunten
+- **Nieuwe kolommen:**  
+  - Supabase tabel bijwerken  
+  - View `voorraad_schoon` aanpassen  
+  - YAML in gist updaten  
+  - Google Sheets script aanpassen
+- **Filters:**  
+  - Ongewenste waarden filteren in de view, niet in GPT of Sheets.
+- **Beveiliging:**  
+  - Schrijf-toegang alleen via GPT (service_role key)  
+  - Sheets gebruikt alleen anon key voor read-only toegang
