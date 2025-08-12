@@ -91,7 +91,7 @@ Custom GPT (schrijf) → Supabase (tabel + view) → Google Sheets (lees)
 ---
 
 ## Links
-- **Google Spreadsheet**: [Open](https://docs.google.com/spreadsheets/d/1KvllL8AbYfnqMXmbdb8PDDJGQYZwHMN5CgvwzqzICXQ/edit?gid=0#gid=0)  
+- **Google Spreadsheet**: zie INSTALL.md voor instructies om je eigen gekoppelde sheet op te zetten.
 - **OpenAPI gist**: [Open](https://gist.github.com/janpi80/27bcaec51e4454db0fa36f976d1176c0)
 
 ---
