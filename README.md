@@ -1,63 +1,100 @@
-Voorraadbeheer – Supabase + Custom GPT + Google Sheets
+# Voorraadbeheer – Supabase + Custom GPT + Google Sheets
 
-Dit project koppelt een Supabase-database aan een Custom GPT voor voorraadbeheer, en een Google Sheet als read-only dashboard.  
-- Custom GPT: Alle bewerkingen (toevoegen, wijzigen, verwijderen, THT-checks).  
-- Google Sheets: Alleen uitlezen (read-only).  
-- Supabase View (voorraad_schoon): Filtert automatisch irrelevante waarden, zoals de bulkdatum 2025-08-12T08:03:17.819444+00:00.
+## Overzicht
+Dit project is een volledig digitaal systeem voor **voorraadbeheer**, **boodschappen** en **receptbeheer**.  
+Het combineert:
+- **Supabase** als centrale database
+- **Custom GPT** als slimme interface voor beheer
+- **Google Sheets** als visueel dashboard (read-only)
 
-1. Supabase
-Tabel: Voorraad
-Kolommen:
-id, created_at, categorie, naam_kort, omschrijving, hoeveelheid, eenheid, kcal_per_eenheid, eiwit_per_eenheid, tht, datum_laatste_wijziging, opmerkingen
+Met dit systeem kun je:
+- Producten toevoegen, wijzigen en verwijderen
+- Houdbaarheidsdata (THT) controleren
+- Notities toevoegen aan producten
+- Een boodschappenlijst bijhouden
+- Recepten opslaan en automatisch ingrediënten controleren
+- Altijd een up-to-date overzicht hebben in Google Sheets
 
-View: voorraad_schoon
-SQL:
-create or replace view voorraad_schoon as
-select 
-  id, 
-  created_at, 
-  categorie, 
-  naam_kort, 
-  omschrijving, 
-  hoeveelheid, 
-  eenheid, 
-  kcal_per_eenheid, 
-  eiwit_per_eenheid, 
-  tht, 
-  case 
-    when datum_laatste_wijziging = '2025-08-12T08:03:17.819444+00:00' then null 
-    else datum_laatste_wijziging 
-  end as datum_laatste_wijziging, 
-  opmerkingen
-from "Voorraad";
+---
 
-Doel: irrelevante datum neutraliseren voordat data naar GPT of Google Sheet gaat.
+## Hoe het werkt
+1. **Custom GPT**  
+   - Is gekoppeld via een OpenAPI-specificatie.
+   - Kan voorraad, boodschappen en recepten beheren met commando's in natuurlijke taal.
+   - Alleen GPT heeft schrijf-toegang (via Supabase service_role key).
 
-2. Custom GPT
-OpenAPI-spec: https://gist.github.com/janpi80/27bcaec51e4454db0fa36f976d1176c0  
-Aanpassingen:
-- getVoorraad-route verwijst naar /voorraad_schoon
-- Kolommen datum_laatste_wijziging en opmerkingen toegevoegd aan VoorraadItem en VoorraadUpdate
-- datum_laatste_wijziging optioneel bij POST (Supabase vult automatisch)
+2. **Supabase**  
+   - Bevat de hoofdtabel `Voorraad` met alle categorieën.
+   - Extra view `voorraad_schoon` filtert onnodige waarden (zoals irrelevante bulkdatums).
+   - Houdt automatisch bij wanneer een product voor het laatst is gewijzigd.
 
-3. Google Sheets
-Spreadsheet: https://docs.google.com/spreadsheets/d/1KvllL8AbYfnqMXmbdb8PDDJGQYZwHMN5CgvwzqzICXQ/edit?gid=0#gid=0  
-Code.gs gebruikt:
-var supabaseUrl = 'https://nvttcwbsqbiidzszaran.supabase.co/rest/v1/voorraad_schoon?select=*';
+3. **Google Sheets**  
+   - Haalt data op uit `voorraad_schoon`.
+   - Is **read-only** (gebruikt anon key) zodat gegevens niet per ongeluk worden gewijzigd.
+   - Geeft altijd een actueel overzicht van de voorraad.
 
-Aanpassing t.o.v. oorspronkelijke versie:
-- voorraad vervangen door voorraad_schoon zodat gefilterde data wordt opgehaald
-- Blijft read-only: API key in Sheets is anon-key
+---
 
-4. Implementatiestappen
-1. View aanmaken in Supabase SQL (zie script hierboven)
-2. YAML aanpassen in getVoorraad-route /voorraad → /voorraad_schoon
-3. Nieuwe versie in gist plaatsen en Custom GPT updaten via Edit Actions → Import from URL
-4. API key opnieuw invullen
-5. Google Sheet updaten in Code.gs met nieuwe view-URL
-6. Testen in GPT en Google Sheets om te controleren dat irrelevante datum is verdwenen
+## Databasecategorieën
 
-5. Belangrijke aandachtspunten
-- Nieuwe kolommen toevoegen? Supabase tabel updaten, view voorraad_schoon updaten, YAML aanpassen, Google Sheets Code.gs aanpassen
-- Nieuwe filters in view zetten om ongewenste waarden te verwijderen
-- Alleen GPT heeft schrijf-toegang; Google Sheets blijft read-only
+### 1. Voorraadbeheer
+Categorieën:
+- Diepvries
+- Koelkast en vers
+- Kruiden en gedroogd
+- Kast / Houdbaar
+
+**Functies:**
+- Producten toevoegen, bewerken of verwijderen.
+- THT-checks voor versproducten (3 dagen) en overige (7 dagen).
+- Opmerkingenveld voor extra context.
+
+---
+
+### 2. Boodschappenlijst
+- **Categorie:** `boodschappen`
+- Bevat producten die nog gekocht moeten worden.
+- Kan automatisch worden gevuld als ingrediënten ontbreken voor een recept.
+- Na aankoop worden items verwijderd en toegevoegd aan de juiste voorraadcategorie.
+
+---
+
+### 3. Recepten
+- **Categorie:** `recepten`
+- Opslag als één item per recept.
+- **hoeveelheid** = aantal porties.
+- **omschrijving** bevat ingrediëntenlijst en bereidingswijze.
+- **kcal_per_eenheid** en **eiwit_per_eenheid** per portie.
+- GPT kan automatisch controleren of alle ingrediënten aanwezig zijn en ontbrekende producten op de boodschappenlijst zetten.
+
+---
+
+## Belangrijkste voordelen
+- **Centrale opslag**: alle gegevens in Supabase.
+- **Slimme bediening**: beheer via natuurlijke taal met GPT.
+- **Visueel overzicht**: Google Sheets als dashboard.
+- **Automatisch filteren**: onnodige datums/waarden verwijderd in de view.
+- **Veiligheid**: schrijf-toegang alleen voor GPT, lees-toegang voor Sheets.
+
+---
+
+## Systeemoverzicht
+
+Custom GPT (schrijf) → Supabase (tabel + view) → Google Sheets (lees)
+---
+
+## Installatie & gebruik
+- [`INSTALL.md`](INSTALL.md): stap-voor-stap installatie-instructies.
+- [`UPDATE_STEPS.md`](UPDATE_STEPS.md): bijwerken van het systeem.
+- [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md): technische details.
+
+---
+
+## Links
+- **Google Spreadsheet**: [Open](https://docs.google.com/spreadsheets/d/1KvllL8AbYfnqMXmbdb8PDDJGQYZwHMN5CgvwzqzICXQ/edit?gid=0#gid=0)  
+- **OpenAPI gist**: [Open](https://gist.github.com/janpi80/27bcaec51e4454db0fa36f976d1176c0)
+
+---
+
+## Licentie
+Dit project valt onder de MIT-licentie – zie [`LICENSE`](LICENSE).
