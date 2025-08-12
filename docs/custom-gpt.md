@@ -2,8 +2,6 @@
 
 ## OpenAPI-specificatie
 Bestand: `openapi/openapi.yaml`  
-Live versie:  
-https://gist.github.com/janpi80/27bcaec51e4454db0fa36f976d1176c0
 
 ## Belangrijk
 - `getVoorraad` gebruikt `/voorraad_schoon` in plaats van `/Voorraad`
