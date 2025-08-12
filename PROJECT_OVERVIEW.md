@@ -27,7 +27,7 @@ Het maakt gebruik van:
 ---
 
 ### 2. Custom GPT
-- Koppelt via een OpenAPI-specificatie (YAML in gist).
+- Koppelt via een OpenAPI-specificatie (YAML in openai map).
 - Schrijf-toegang tot Supabase (service_role key).
 - Taken:
   - Producten toevoegen, bijwerken of verwijderen
